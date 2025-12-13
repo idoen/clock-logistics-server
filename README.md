@@ -6,32 +6,32 @@
 
 ## מה יש היום
 
-- **בריאות שירות**: `GET /health` מחזיר `{ ok: true }` לבדיקה מהירה שהשרת רץ.
+- **בריאות שירות**: <span dir="ltr">`GET /health` → `{ ok: true }`</span> לבדיקת תקינות השרת.
 - **דוחות לוגיסטיים**
-  - `GET /api/logistics/daily` – תצפית יומית מורחבת על מלאי וחוסרים עם סינון לפי `status` (`SAFE` / `CRITICAL` / `DEAD_STOCK`).
-  - `GET /api/logistics/risk60d` – זיהוי מוצרים שצפויים להיכנס לסיכון חוסר ב-60 הימים הבאים.
-  - `GET /api/logistics/reorder` – המלצות הזמנה עם סדר עדיפויות לפי רמת סיכון ומצב.
+  - <span dir="ltr">`GET /api/logistics/daily`</span> – תצפית יומית מורחבת על מלאי וחוסרים עם סינון לפי <span dir="ltr">`status`</span> (<span dir="ltr">`SAFE`</span> / <span dir="ltr">`CRITICAL`</span> / <span dir="ltr">`DEAD_STOCK`</span>).
+  - <span dir="ltr">`GET /api/logistics/risk60d`</span> – זיהוי מוצרים שצפויים להיכנס לסיכון חוסר ב-60 הימים הבאים.
+  - <span dir="ltr">`GET /api/logistics/reorder`</span> – המלצות הזמנה עם סדר עדיפויות לפי רמת סיכון ומצב.
 - **ניהול חריגי ROP**
-  - `POST /api/overrides` – יצירת Override ל-ROP או לכמות הזמנה עם אפשרות לציון סיבה; מבטל Override פעיל קודם לאותו מוצר.
-  - `PATCH /api/overrides/:id/disable` – השבתת Override קיים.
+  - <span dir="ltr">`POST /api/overrides`</span> – יצירת Override ל-ROP או לכמות הזמנה עם אפשרות לציון סיבה; מבטל Override פעיל קודם לאותו מוצר.
+  - <span dir="ltr">`PATCH /api/overrides/:id/disable`</span> – השבתת Override קיים.
 - **הזמנות רכש**
-  - `GET /api/purchase-orders` – צפייה בהזמנות רכש אחרונות (עד 200 אחרונות).
-  - `POST /api/purchase-orders` – פתיחת הזמנת רכש חדשה עם כמות נדרשת ותאריך הגעה משוער (אופציונלי).
+  - <span dir="ltr">`GET /api/purchase-orders`</span> – צפייה בהזמנות רכש אחרונות (עד 200 אחרונות).
+  - <span dir="ltr">`POST /api/purchase-orders`</span> – פתיחת הזמנת רכש חדשה עם כמות נדרשת ותאריך הגעה משוער (אופציונלי).
 - **עדכון מלאי**
-  - `PATCH /api/inventory/:productId` – עדכון או הזנת רמות מלאי (`onHand`, `reserved`, `inTransit`) עם upsert ושמירת זמני ספירה.
+  - <span dir="ltr">`PATCH /api/inventory/:productId`</span> – עדכון או הזנת רמות מלאי (<span dir="ltr">`onHand`</span>, <span dir="ltr">`reserved`</span>, <span dir="ltr">`inTransit`</span>) עם upsert ושמירת זמני ספירה.
 
 ## ארכיטקטורה וקונפיגורציה
 
-- **טכנולוגיה**: Express + TypeScript עם חיבור ל-PostgreSQL דרך `pg`.
-- **קובץ כניסה**: `src/server.ts` מריץ את היישום עם פורט מוגדר ב-`PORT` (ברירת מחדל 3000).
-- **חיבור למסד**: דרוש משתנה סביבה `DATABASE_URL` בקובץ `.env` (טעינה באמצעות `dotenv`).
+- **טכנולוגיה**: Express + TypeScript עם חיבור ל-PostgreSQL דרך <span dir="ltr">`pg`</span>.
+- **קובץ כניסה**: <span dir="ltr">`src/server.ts`</span> מריץ את היישום עם פורט מוגדר ב-<span dir="ltr">`PORT`</span> (ברירת מחדל 3000).
+- **חיבור למסד**: דרוש משתנה סביבה <span dir="ltr">`DATABASE_URL`</span> בקובץ <span dir="ltr">`.env`</span> (טעינה באמצעות <span dir="ltr">`dotenv`</span>).
 - **Middleware**: טיפול שגיאות מרכזי שמחזיר 500 במקרי כשל בלתי צפויים.
 
 ### הרצה מקומית
 
-1. התקנת תלויות: `npm install`.
-2. יצירת קובץ `.env` עם `DATABASE_URL=postgres://...`.
-3. פיתוח: `npm run dev` (ts-node-dev עם reload). הפקה: `npm run build` ואז `npm start`.
+1. התקנת תלויות: <span dir="ltr">`npm install`</span>.
+2. יצירת קובץ <span dir="ltr">`.env`</span> עם <span dir="ltr">`DATABASE_URL=postgres://...`</span>.
+3. פיתוח: <span dir="ltr">`npm run dev`</span> (ts-node-dev עם reload). הפקה: <span dir="ltr">`npm run build`</span> ואז <span dir="ltr">`npm start`</span>.
 
 ## מה צפוי להתווסף בהמשך
 
