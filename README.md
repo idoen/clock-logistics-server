@@ -1,51 +1,46 @@
-<div dir="rtl" markdown="1">
+# SimchoClock – Watch Distribution Recommendations Server
 
-# שימחוקלוק – שרת ההמלצות להפצת שעונים
+A Node.js server that provides an API layer and logistics data for "SimchoClock", a watch distribution recommendation engine. This document summarizes the current capabilities and outlines where the system is expected to evolve.
 
-שרת Node.js שמספק שכבת API ונתונים לוגיסטיים עבור "שימחוקלוק", מנוע המלצות להפצת שעונים. המסמך מסכם את היכולות הקיימות כרגע ומסמן לאן המערכת צפויה להתפתח.
+## Current Features
 
-## מה יש היום
+- **Service Health**: `GET /health` → `{ ok: true }` for server health checks.
+- **Logistics Reports**
+  - `GET /api/logistics/daily` – Extended daily view of inventory and shortages with filtering by `status` (`SAFE` / `CRITICAL` / `DEAD_STOCK`).
+  - `GET /api/logistics/risk60d` – Identification of products at risk of shortage in the next 60 days.
+  - `GET /api/logistics/reorder` – Order recommendations prioritized by risk level and status.
+- **ROP Override Management**
+  - `POST /api/overrides` – Create an Override for ROP or order quantity with optional reason; cancels any previous active Override for the same product.
+  - `PATCH /api/overrides/:id/disable` – Disable an existing Override.
+- **Purchase Orders**
+  - `GET /api/purchase-orders` – View recent purchase orders (up to 200 most recent).
+  - `POST /api/purchase-orders` – Open a new purchase order with required quantity and optional estimated arrival date.
+- **Inventory Updates**
+  - `PATCH /api/inventory/:productId` – Update or insert inventory levels (`onHand`, `reserved`, `inTransit`) with upsert and count timestamp preservation.
 
-- **בריאות שירות**: <span dir="ltr">`GET /health` → `{ ok: true }`</span> לבדיקת תקינות השרת.
-- **דוחות לוגיסטיים**
-  - <span dir="ltr">`GET /api/logistics/daily`</span> – תצפית יומית מורחבת על מלאי וחוסרים עם סינון לפי <span dir="ltr">`status`</span> (<span dir="ltr">`SAFE`</span> / <span dir="ltr">`CRITICAL`</span> / <span dir="ltr">`DEAD_STOCK`</span>).
-  - <span dir="ltr">`GET /api/logistics/risk60d`</span> – זיהוי מוצרים שצפויים להיכנס לסיכון חוסר ב-60 הימים הבאים.
-  - <span dir="ltr">`GET /api/logistics/reorder`</span> – המלצות הזמנה עם סדר עדיפויות לפי רמת סיכון ומצב.
-- **ניהול חריגי ROP**
-  - <span dir="ltr">`POST /api/overrides`</span> – יצירת Override ל-ROP או לכמות הזמנה עם אפשרות לציון סיבה; מבטל Override פעיל קודם לאותו מוצר.
-  - <span dir="ltr">`PATCH /api/overrides/:id/disable`</span> – השבתת Override קיים.
-- **הזמנות רכש**
-  - <span dir="ltr">`GET /api/purchase-orders`</span> – צפייה בהזמנות רכש אחרונות (עד 200 אחרונות).
-  - <span dir="ltr">`POST /api/purchase-orders`</span> – פתיחת הזמנת רכש חדשה עם כמות נדרשת ותאריך הגעה משוער (אופציונלי).
-- **עדכון מלאי**
-  - <span dir="ltr">`PATCH /api/inventory/:productId`</span> – עדכון או הזנת רמות מלאי (<span dir="ltr">`onHand`</span>, <span dir="ltr">`reserved`</span>, <span dir="ltr">`inTransit`</span>) עם upsert ושמירת זמני ספירה.
+## Architecture and Configuration
 
-## ארכיטקטורה וקונפיגורציה
+- **Technology**: Express + TypeScript with PostgreSQL connection via `pg`.
+- **Entry File**: `src/server.ts` runs the application with a port defined in `PORT` (default 3000).
+- **Database Connection**: Requires a `DATABASE_URL` environment variable in a `.env` file (loaded via `dotenv`).
+- **Middleware**: Centralized error handling that returns 500 for unexpected failures.
 
-- **טכנולוגיה**: Express + TypeScript עם חיבור ל-PostgreSQL דרך <span dir="ltr">`pg`</span>.
-- **קובץ כניסה**: <span dir="ltr">`src/server.ts`</span> מריץ את היישום עם פורט מוגדר ב-<span dir="ltr">`PORT`</span> (ברירת מחדל 3000).
-- **חיבור למסד**: דרוש משתנה סביבה <span dir="ltr">`DATABASE_URL`</span> בקובץ <span dir="ltr">`.env`</span> (טעינה באמצעות <span dir="ltr">`dotenv`</span>).
-- **Middleware**: טיפול שגיאות מרכזי שמחזיר 500 במקרי כשל בלתי צפויים.
+### Local Development
 
-### הרצה מקומית
+1. Install dependencies: `npm install`.
+2. Create a `.env` file with `DATABASE_URL=postgres://...`.
+3. Development: `npm run dev` (ts-node-dev with reload). Production: `npm run build` then `npm start`.
 
-1. התקנת תלויות: <span dir="ltr">`npm install`</span>.
-2. יצירת קובץ <span dir="ltr">`.env`</span> עם <span dir="ltr">`DATABASE_URL=postgres://...`</span>.
-3. פיתוח: <span dir="ltr">`npm run dev`</span> (ts-node-dev עם reload). הפקה: <span dir="ltr">`npm run build`</span> ואז <span dir="ltr">`npm start`</span>.
+## Planned Future Additions
 
-## מה צפוי להתווסף בהמשך
+Based on the complete user stories defined:
 
-מבוסס על סיפורי המשתמש המלאים שהוגדרו:
+- **Sales Manager**: Targeted inventory suggestions for store owners with budget limits (up to 15% of store budget), handling new stores via a "best sellers" list, and duplicate filtering to avoid suggesting items purchased in the last 30 days.
+- **Marketing Manager**: Weekly report to identify brand gaps (gaps exceeding 30% compared to regional average) with automatic demographic explanations and contact export capability for campaign management.
+- **Logistics Manager**: Smart inventory shortage forecasting with seasonality factor and lead time consideration, dead stock alerts (40–60% decrease in sales rate), and at-risk product lists.
+- **Store Owner**: Personal area for viewing inventory proposals, approval or rejection with quantity editing; real-time dynamic cart calculation, mandatory rejection reason collection, and credit limit check that blocks exceptional approvals.
 
-- **מנהל מכירות**: הצעות מלאי ממוקדות לבעלי חנויות עם מגבלת תקציב (עד 15% מתקציב החנות), טיפול בחנויות חדשות דרך רשימת "הנמכרים ביותר", וסינון כפילויות כדי לא להציע פריטים שנקנו ב-30 הימים האחרונים.
-- **מנהל שיווק**: דו"ח שבועי לזיהוי פער מותג (פער העולה על 30% ביחס לממוצע אזורי) עם נימוקים דמוגרפיים אוטומטיים ואפשרות לייצוא פרטי קשר לניהול קמפיינים.
-- **מנהל לוגיסטיקה**: חיזוי חוסרי מלאי חכם עם מקדם עונתיות והתחשבות ב-lead time, התרעות על מלאי מת (ירידה של 40–60% בקצב מכירה), ורשימת מוצרים בסיכון.
-- **בעל חנות**: אזור אישי להצגת הצעת מלאי, אישור או דחייה ועריכת כמויות; חישוב סל דינמי בזמן אמת, איסוף סיבת דחייה מחייבת, ובדיקת מסגרת אשראי שחוסמת אישור חריג.
+## Known Issues and Current Limitations
 
-## ידועות ומגבלות נוכחיות
-
-- אין עדיין ניהול זהויות/הרשאות, ממשק משתמש או מנגנוני חישוב ההמלצות עצמם – ה-API מסתמך על נתונים שמגיעים ממסד PostgreSQL (למשל views ו-CTE קיימים).
-- אין ולידציה שכבת-דומיין מעבר לבדיקות שדות בסיסיות (לדוגמה, בדיקת `quantity > 0`).
-
-</div>
-
+- No identity/permission management, user interface, or recommendation calculation mechanisms yet – the API relies on data from PostgreSQL (e.g., existing views and CTEs).
+- No domain-layer validation beyond basic field checks (e.g., `quantity > 0` validation).
