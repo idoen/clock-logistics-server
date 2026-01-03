@@ -1,4 +1,6 @@
 import express from "express";
+import cors from "cors";
+
 import { logisticsRouter } from "./routes/logistics.routes";
 import { overridesRouter } from "./routes/overrides.routes";
 import { purchaseOrdersRouter } from "./routes/purchaseOrders.routes";
@@ -6,6 +8,11 @@ import { inventoryRouter } from "./routes/inventory.routes";
 import { errorHandler } from "./middleware/errorHandler";
 
 export const app = express();
+
+// CORS must come before routes
+app.use(cors({
+  origin: "http://localhost:5173",
+}));
 
 app.use(express.json());
 
