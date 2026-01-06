@@ -1,10 +1,10 @@
 import request from "supertest";
 import { app } from "../../src/app";
-import { createTestProduct } from "../helpers/db";
+import { getAnyProductId } from "../helpers/db";
 
 describe("purchase orders API", () => {
     it("creates a purchase order and lists it", async () => {
-        const productId = await createTestProduct();
+        const productId = await getAnyProductId();
         const createResponse = await request(app)
             .post("/api/purchase-orders")
             .send({

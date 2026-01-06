@@ -2,11 +2,11 @@ import {
     createPurchaseOrder,
     getPurchaseOrderById,
 } from "../../src/repositories/purchaseOrders.repository";
-import { createTestProduct } from "../helpers/db";
+import { getAnyProductId } from "../helpers/db";
 
 describe("purchaseOrders.repository", () => {
     it("creates and fetches a purchase order record", async () => {
-        const productId = await createTestProduct();
+        const productId = await getAnyProductId();
         const created = await createPurchaseOrder({
             productId,
             qtyOrdered: 12,

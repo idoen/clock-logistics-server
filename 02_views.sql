@@ -1,0 +1,1 @@
+-- Placeholder for logistics views used in production.
