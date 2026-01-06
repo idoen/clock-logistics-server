@@ -5,7 +5,7 @@ export type CreatePurchaseOrderInput = {
 };
 
 export function validatePurchaseOrderInput(body: CreatePurchaseOrderInput): string | null {
-    if (!body?.productId || !body?.qtyOrdered) {
+    if (body?.productId == null || body?.qtyOrdered == null) {
         return "productId and qtyOrdered are required";
     }
     if (body.qtyOrdered <= 0) {

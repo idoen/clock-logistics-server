@@ -1,4 +1,5 @@
 import { afterAll, afterEach, beforeAll } from "@jest/globals";
+import { pool } from "../../src/db/pool";
 import { closeDb, migrate, truncateAll } from "../helpers/db";
 
 beforeAll(async () => {
@@ -17,4 +18,5 @@ afterEach(async () => {
 
 afterAll(async () => {
     await closeDb();
+    await pool.end();
 });

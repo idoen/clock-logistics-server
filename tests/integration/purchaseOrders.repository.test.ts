@@ -1,9 +1,14 @@
-import { createPurchaseOrder, getPurchaseOrderById } from "../../src/repositories/purchaseOrders.repository";
+import {
+    createPurchaseOrder,
+    getPurchaseOrderById,
+} from "../../src/repositories/purchaseOrders.repository";
+import { createTestProduct } from "../helpers/db";
 
 describe("purchaseOrders.repository", () => {
     it("creates and fetches a purchase order record", async () => {
+        const productId = await createTestProduct();
         const created = await createPurchaseOrder({
-            productId: 101,
+            productId,
             qtyOrdered: 12,
             expectedArrival: "2030-01-15",
         });
@@ -12,7 +17,7 @@ describe("purchaseOrders.repository", () => {
 
         expect(fetched).not.toBeNull();
         expect(fetched?.id).toBe(created.id);
-        expect(fetched?.product_id).toBe(created.product_id);
+        expect(Number(fetched?.product_id)).toBe(productId);
         expect(fetched?.qty_ordered).toBe(created.qty_ordered);
         expect(fetched?.expected_arrival).toBe(created.expected_arrival);
         expect(fetched?.status).toBe("ORDERED");
