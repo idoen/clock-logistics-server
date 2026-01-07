@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import {
     createPurchaseOrder as createPurchaseOrderRecord,
     listPurchaseOrders as listPurchaseOrderRecords,
+    PurchaseOrderRecord,
 } from "../repositories/purchaseOrders.repository";
 import { validatePurchaseOrderInput } from "../utils/purchaseOrderLogic";
 
@@ -11,10 +12,15 @@ type CreatePOBody = {
     expectedArrival?: string; // YYYY-MM-DD
 };
 
+function withOrderDate(record: PurchaseOrderRecord): PurchaseOrderRecord {
+    const orderDate = record.order_date ?? record.created_at.slice(0, 10);
+    return { ...record, order_date: orderDate };
+}
+
 export async function listPurchaseOrders(_req: Request, res: Response, next: NextFunction) {
     try {
         const records = await listPurchaseOrderRecords();
-        res.json(records);
+        res.json(records.map(withOrderDate));
     } catch (e) {
         next(e);
     }
@@ -35,7 +41,7 @@ export async function createPurchaseOrder(req: Request, res: Response, next: Nex
             expectedArrival: body.expectedArrival ?? null,
         });
 
-        res.status(201).json(record);
+        res.status(201).json(withOrderDate(record));
     } catch (e) {
         next(e);
     }
