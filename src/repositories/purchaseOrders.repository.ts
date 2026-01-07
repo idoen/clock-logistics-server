@@ -6,6 +6,7 @@ export type PurchaseOrderRecord = {
     qty_ordered: number;
     expected_arrival: string | null; // always YYYY-MM-DD (or null)
     status: string; // enum -> text
+    order_date: string; // YYYY-MM-DD
     created_at: string; // timestamptz -> text
 };
 
@@ -21,6 +22,7 @@ const PO_COLUMNS_SQL = `
     qty_ordered,
     expected_arrival::text AS expected_arrival,
     status::text AS status,
+    created_at::date::text AS order_date,
     created_at::text AS created_at
 `;
 
