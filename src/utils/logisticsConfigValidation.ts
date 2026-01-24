@@ -2,61 +2,89 @@ import { LogisticsConfigUpdateInput } from "../types/logisticsConfig";
 
 const MIN_WEIGHT = 0;
 const MAX_WEIGHT = 1;
+const FORECAST_WEIGHT_TOLERANCE = 0.001;
 
-function isDefined<T>(value: T | undefined): value is T {
-    return value !== undefined;
+const dayFields: Array<keyof LogisticsConfigUpdateInput> = [
+    "windowDaysShort",
+    "windowDaysLong",
+    "safetyStockStatsDays",
+    "reorderCoverageDays",
+    "riskHorizonDays",
+    "deadStockWindowDays",
+];
+
+const weightFields: Array<keyof LogisticsConfigUpdateInput> = [
+    "forecastWeightShort",
+    "forecastWeightLong",
+    "deadStockDropMin",
+    "deadStockDropMax",
+];
+
+const allKnownFields: Array<keyof LogisticsConfigUpdateInput> = [
+    ...dayFields,
+    ...weightFields,
+    "serviceLevelZ",
+];
+
+function isNumber(value: unknown): value is number {
+    return typeof value === "number" && Number.isFinite(value);
 }
 
 export function validateLogisticsConfigUpdate(input: LogisticsConfigUpdateInput): string | null {
-    const hasUpdate = Object.values(input).some(isDefined);
+    const hasUpdate = allKnownFields.some((key) => input[key] !== undefined);
     if (!hasUpdate) {
         return "At least one field is required";
     }
 
-    if (isDefined(input.windowDaysShort) && input.windowDaysShort <= 0) {
-        return "windowDaysShort must be > 0";
+    for (const key of allKnownFields) {
+        const value = input[key];
+        if (value === undefined) continue;
+        if (!isNumber(value)) {
+            return `${String(key)} must be a number`;
+        }
     }
-    if (isDefined(input.windowDaysLong) && input.windowDaysLong <= 0) {
-        return "windowDaysLong must be > 0";
+
+    for (const key of dayFields) {
+        const value = input[key];
+        if (value === undefined) continue;
+        if (!Number.isInteger(value)) {
+            return `${String(key)} must be an integer`;
+        }
+        if (value <= 0) {
+            return `${String(key)} must be > 0`;
+        }
     }
+
+    if (input.serviceLevelZ !== undefined) {
+        if (input.serviceLevelZ <= 0) {
+            return "serviceLevelZ must be > 0";
+        }
+    }
+
+    for (const key of weightFields) {
+        const value = input[key];
+        if (value === undefined) continue;
+        if (value < MIN_WEIGHT || value > MAX_WEIGHT) {
+            return `${String(key)} must be between 0 and 1`;
+        }
+    }
+
     if (
-        isDefined(input.forecastWeightShort) &&
-        (input.forecastWeightShort < MIN_WEIGHT || input.forecastWeightShort > MAX_WEIGHT)
+        input.deadStockDropMin !== undefined &&
+        input.deadStockDropMax !== undefined &&
+        input.deadStockDropMin > input.deadStockDropMax
     ) {
-        return "forecastWeightShort must be between 0 and 1";
+        return "deadStockDropMin must be <= deadStockDropMax";
     }
+
     if (
-        isDefined(input.forecastWeightLong) &&
-        (input.forecastWeightLong < MIN_WEIGHT || input.forecastWeightLong > MAX_WEIGHT)
+        input.forecastWeightShort !== undefined &&
+        input.forecastWeightLong !== undefined
     ) {
-        return "forecastWeightLong must be between 0 and 1";
-    }
-    if (isDefined(input.safetyStockStatsDays) && input.safetyStockStatsDays <= 0) {
-        return "safetyStockStatsDays must be > 0";
-    }
-    if (isDefined(input.serviceLevelZ) && input.serviceLevelZ <= 0) {
-        return "serviceLevelZ must be > 0";
-    }
-    if (isDefined(input.reorderCoverageDays) && input.reorderCoverageDays <= 0) {
-        return "reorderCoverageDays must be > 0";
-    }
-    if (isDefined(input.riskHorizonDays) && input.riskHorizonDays <= 0) {
-        return "riskHorizonDays must be > 0";
-    }
-    if (isDefined(input.deadStockWindowDays) && input.deadStockWindowDays <= 0) {
-        return "deadStockWindowDays must be > 0";
-    }
-    if (
-        isDefined(input.deadStockDropMin) &&
-        (input.deadStockDropMin < MIN_WEIGHT || input.deadStockDropMin > MAX_WEIGHT)
-    ) {
-        return "deadStockDropMin must be between 0 and 1";
-    }
-    if (
-        isDefined(input.deadStockDropMax) &&
-        (input.deadStockDropMax < MIN_WEIGHT || input.deadStockDropMax > MAX_WEIGHT)
-    ) {
-        return "deadStockDropMax must be between 0 and 1";
+        const sum = input.forecastWeightShort + input.forecastWeightLong;
+        if (Math.abs(sum - 1) > FORECAST_WEIGHT_TOLERANCE) {
+            return "Forecast weights must sum to 1";
+        }
     }
 
     return null;
