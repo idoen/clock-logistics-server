@@ -6,6 +6,7 @@ import { overridesRouter } from "./routes/overrides.routes";
 import { purchaseOrdersRouter } from "./routes/purchaseOrders.routes";
 import { inventoryRouter } from "./routes/inventory.routes";
 import { logisticsConfigRouter } from "./routes/logisticsConfig.routes";
+import { salesReportRouter } from "./routes/salesReport.routes";
 import { errorHandler } from "./middleware/errorHandler";
 
 export const app = express();
@@ -24,5 +25,6 @@ app.use("/api/overrides", overridesRouter);
 app.use("/api/purchase-orders", purchaseOrdersRouter);
 app.use("/api/inventory", inventoryRouter);
 app.use("/api/logistics-config", logisticsConfigRouter);
+app.use("/api/sales", salesReportRouter);
 
 app.use(errorHandler);
