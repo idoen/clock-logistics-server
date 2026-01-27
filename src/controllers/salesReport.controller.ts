@@ -112,7 +112,7 @@ export async function getSalesReport(req: Request, res: Response, next: NextFunc
 
         const countResult = await pool.query(
             `SELECT COUNT(*)::int AS total
-             FROM logistics.fn_sales_report($1, $2, $3) AS r`,
+             FROM logistics.fn_sales_report($1::numeric, $2::jsonb, $3::boolean) AS r`,
             [budget, filters, inStockOnly]
         );
 
@@ -128,7 +128,7 @@ export async function getSalesReport(req: Request, res: Response, next: NextFunc
                 r.image_url,
                 r.available,
                 r.score
-             FROM logistics.fn_sales_report($1, $2, $3) AS r
+             FROM logistics.fn_sales_report($1::numeric, $2::jsonb, $3::boolean) AS r
              ${orderBy}
              LIMIT $4 OFFSET $5`,
             [budget, filters, inStockOnly, pageSize, offset]
@@ -180,7 +180,7 @@ export async function exportSalesReport(req: Request, res: Response, next: NextF
                 r.image_url,
                 r.available,
                 r.score
-             FROM logistics.fn_sales_report($1, $2, $3) AS r
+             FROM logistics.fn_sales_report($1::numeric, $2::jsonb, $3::boolean) AS r
              ${orderBy}`,
             [budget, filters, inStockOnly]
         );
