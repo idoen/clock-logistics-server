@@ -81,6 +81,79 @@ function parseSort(value: unknown): SortConfig {
     return { field: normalizedField, direction: normalizedDirection };
 }
 
+type ReportSource = {
+    fromSql: string;
+    params: Array<string | number | boolean | Record<string, unknown> | null>;
+};
+
+function buildReportSource(
+    budget: number | null,
+    filters: SalesReportFilters,
+    inStockOnly: boolean
+): ReportSource {
+    if (inStockOnly) {
+        return {
+            fromSql: "FROM logistics.fn_sales_report($1::numeric, $2::jsonb) AS r",
+            params: [budget, filters],
+        };
+    }
+
+    const conditions: string[] = ["p.is_active = TRUE"];
+    const params: Array<string | number | Record<string, unknown> | null> = [];
+
+    if (budget !== null && Number.isFinite(budget)) {
+        params.push(budget);
+        conditions.push(`p.list_price IS NOT NULL AND p.list_price <= $${params.length}`);
+    }
+
+    if (filters.category) {
+        params.push(filters.category);
+        const paramRef = `$${params.length}`;
+        conditions.push(`(p.category = ${paramRef} OR p.attributes ->> 'category' = ${paramRef})`);
+    }
+
+    if (filters.brand) {
+        params.push(filters.brand);
+        conditions.push(`p.attributes ->> 'brand' = $${params.length}`);
+    }
+
+    if (filters.gender) {
+        params.push(filters.gender);
+        conditions.push(`p.attributes ->> 'gender' = $${params.length}`);
+    }
+
+    if (filters.material) {
+        params.push(filters.material);
+        conditions.push(`p.attributes ->> 'material' = $${params.length}`);
+    }
+
+    if (filters.is_gold) {
+        params.push(filters.is_gold);
+        conditions.push(`p.attributes ->> 'is_gold' = $${params.length}`);
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    return {
+        fromSql: `FROM (
+            SELECT
+                p.id AS product_id,
+                p.sku,
+                p.name,
+                p.category,
+                p.list_price,
+                p.currency,
+                p.image_url,
+                s.available,
+                s.recommendation_score AS score
+            FROM logistics.products p
+            JOIN logistics.v_sales_recommendation_score s ON s.product_id = p.id
+            ${where}
+        ) AS r`,
+        params,
+    };
+}
+
 function getSortClause(sort: SortConfig): string {
     switch (sort.field) {
         case "available":
@@ -110,10 +183,11 @@ export async function getSalesReport(req: Request, res: Response, next: NextFunc
         const pageSize = Math.min(Math.max(Number(req.query.pageSize) || 20, 1), MAX_PAGE_SIZE);
         const offset = (page - 1) * pageSize;
 
+        const reportSource = buildReportSource(budget, filters, inStockOnly);
         const countResult = await pool.query(
             `SELECT COUNT(*)::int AS total
-             FROM logistics.fn_sales_report($1::numeric, $2::jsonb, $3::boolean) AS r`,
-            [budget, filters, inStockOnly]
+             ${reportSource.fromSql}`,
+            reportSource.params
         );
 
         const orderBy = getSortClause(sort);
@@ -128,10 +202,10 @@ export async function getSalesReport(req: Request, res: Response, next: NextFunc
                 r.image_url,
                 r.available,
                 r.score
-             FROM logistics.fn_sales_report($1::numeric, $2::jsonb, $3::boolean) AS r
+             ${reportSource.fromSql}
              ${orderBy}
-             LIMIT $4 OFFSET $5`,
-            [budget, filters, inStockOnly, pageSize, offset]
+             LIMIT $${reportSource.params.length + 1} OFFSET $${reportSource.params.length + 2}`,
+            [...reportSource.params, pageSize, offset]
         );
 
         res.json({
@@ -169,6 +243,7 @@ export async function exportSalesReport(req: Request, res: Response, next: NextF
 
         const orderBy = getSortClause(sort);
 
+        const reportSource = buildReportSource(budget, filters, inStockOnly);
         const rowsResult = await pool.query(
             `SELECT
                 r.product_id,
@@ -180,9 +255,9 @@ export async function exportSalesReport(req: Request, res: Response, next: NextF
                 r.image_url,
                 r.available,
                 r.score
-             FROM logistics.fn_sales_report($1::numeric, $2::jsonb, $3::boolean) AS r
+             ${reportSource.fromSql}
              ${orderBy}`,
-            [budget, filters, inStockOnly]
+            reportSource.params
         );
 
         const columns: CsvColumn<SalesReportRow>[] = [
