@@ -63,7 +63,10 @@ describe("sales report API", () => {
             ],
         });
 
-        const response = await request(app).get("/api/sales/report/export").expect(200);
+        const response = await request(app)
+            .get("/api/sales/report/export")
+            .query({ format: "csv" })
+            .expect(200);
 
         expect(response.text).toContain("product_id,sku,name");
         expect(response.headers["content-type"]).toContain("text/csv");
