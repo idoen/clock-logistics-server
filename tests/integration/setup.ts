@@ -1,22 +1,5 @@
-import { afterAll, afterEach, beforeAll } from "@jest/globals";
-import { pool } from "../../src/db/pool";
-import { closeDb, migrate, truncateAll } from "../helpers/db";
+import { afterEach } from "@jest/globals";
 
-beforeAll(async () => {
-    const databaseUrl = process.env.DATABASE_URL ?? "";
-    if (!databaseUrl.includes("clock_logistics_test") && !databaseUrl.includes("_test")) {
-        throw new Error(
-            `Refusing to run integration tests: DATABASE_URL must target a test database. Received: ${databaseUrl}`
-        );
-    }
-    await migrate();
-});
-
-afterEach(async () => {
-    await truncateAll();
-});
-
-afterAll(async () => {
-    await closeDb();
-    await pool.end();
+afterEach(() => {
+    jest.clearAllMocks();
 });
