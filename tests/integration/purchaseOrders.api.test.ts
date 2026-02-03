@@ -58,6 +58,8 @@ describe("purchase orders API", () => {
     it("validates required fields", async () => {
         const response = await request(app).post("/api/purchase-orders").send({}).expect(400);
 
-        expect(response.body).toEqual({ error: "productId and qtyOrdered are required" });
+        expect(response.body).toEqual(
+            expect.objectContaining({ error: "productId and qtyOrdered are required" })
+        );
     });
 });

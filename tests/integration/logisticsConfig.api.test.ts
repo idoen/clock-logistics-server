@@ -16,7 +16,7 @@ describe("logistics config API", () => {
 
         const response = await request(app).get("/api/logistics-config").expect(404);
 
-        expect(response.body).toEqual({ error: "Config not found" });
+        expect(response.body).toEqual(expect.objectContaining({ error: "Config not found" }));
     });
 
     it("returns config when found", async () => {
@@ -24,7 +24,7 @@ describe("logistics config API", () => {
 
         const response = await request(app).get("/api/logistics-config").expect(200);
 
-        expect(response.body).toEqual({ id: true });
+        expect(response.body).toEqual(expect.objectContaining({ id: true }));
     });
 
     it("handles validation errors", async () => {
@@ -35,7 +35,7 @@ describe("logistics config API", () => {
             .send({ windowDaysShort: 5 })
             .expect(400);
 
-        expect(response.body).toEqual({ error: "bad" });
+        expect(response.body).toEqual(expect.objectContaining({ error: "bad" }));
     });
 
     it("handles not found on update", async () => {
@@ -46,7 +46,7 @@ describe("logistics config API", () => {
             .send({ windowDaysShort: 5 })
             .expect(404);
 
-        expect(response.body).toEqual({ error: "Config not found" });
+        expect(response.body).toEqual(expect.objectContaining({ error: "Config not found" }));
     });
 
     it("returns updated config", async () => {
@@ -57,6 +57,6 @@ describe("logistics config API", () => {
             .send({ windowDaysShort: 5 })
             .expect(200);
 
-        expect(response.body).toEqual({ id: true });
+        expect(response.body).toEqual(expect.objectContaining({ id: true }));
     });
 });

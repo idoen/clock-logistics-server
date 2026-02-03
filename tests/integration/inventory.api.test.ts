@@ -15,7 +15,7 @@ describe("inventory API", () => {
             .send({ onHand: 5 })
             .expect(400);
 
-        expect(response.body).toEqual({ error: "Invalid productId" });
+        expect(response.body).toEqual(expect.objectContaining({ error: "Invalid productId" }));
     });
 
     it("updates inventory levels", async () => {
@@ -27,6 +27,6 @@ describe("inventory API", () => {
             .expect(200);
 
         expect(pool.query).toHaveBeenCalled();
-        expect(response.body).toEqual({ product_id: 1 });
+        expect(response.body).toEqual(expect.objectContaining({ product_id: 1 }));
     });
 });

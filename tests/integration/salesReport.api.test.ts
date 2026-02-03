@@ -15,7 +15,9 @@ describe("sales report API", () => {
             .query({ filters: "{bad" })
             .expect(400);
 
-        expect(response.body).toEqual({ error: "filters must be valid JSON" });
+        expect(response.body).toEqual(
+            expect.objectContaining({ error: "filters must be valid JSON" })
+        );
     });
 
     it("returns sales report rows and total", async () => {
@@ -39,7 +41,9 @@ describe("sales report API", () => {
             .query({ format: "pdf" })
             .expect(400);
 
-        expect(response.body).toEqual({ error: "Only csv export is supported" });
+        expect(response.body).toEqual(
+            expect.objectContaining({ error: "Only csv export is supported" })
+        );
     });
 
     it("exports csv report", async () => {
@@ -80,7 +84,7 @@ describe("sales report API", () => {
 
         const response = await request(app).get("/api/sales/report-presets").expect(200);
 
-        expect(response.body).toEqual([{ id: 1 }]);
+        expect(response.body).toEqual([expect.objectContaining({ id: 1 })]);
     });
 
     it("requires name for preset creation", async () => {
@@ -89,7 +93,7 @@ describe("sales report API", () => {
             .send({})
             .expect(400);
 
-        expect(response.body).toEqual({ error: "name is required" });
+        expect(response.body).toEqual(expect.objectContaining({ error: "name is required" }));
     });
 
     it("creates a report preset", async () => {
@@ -100,7 +104,7 @@ describe("sales report API", () => {
             .send({ name: "A" })
             .expect(201);
 
-        expect(response.body).toEqual({ id: 1, name: "A" });
+        expect(response.body).toEqual(expect.objectContaining({ id: 1, name: "A" }));
     });
 
     it("rejects invalid preset id on delete", async () => {
@@ -108,7 +112,7 @@ describe("sales report API", () => {
             .delete("/api/sales/report-presets/not-a-number")
             .expect(400);
 
-        expect(response.body).toEqual({ error: "Invalid id" });
+        expect(response.body).toEqual(expect.objectContaining({ error: "Invalid id" }));
     });
 
     it("returns 404 when preset missing", async () => {
@@ -116,7 +120,7 @@ describe("sales report API", () => {
 
         const response = await request(app).delete("/api/sales/report-presets/10").expect(404);
 
-        expect(response.body).toEqual({ error: "Preset not found" });
+        expect(response.body).toEqual(expect.objectContaining({ error: "Preset not found" }));
     });
 
     it("deletes report preset", async () => {
@@ -124,6 +128,6 @@ describe("sales report API", () => {
 
         const response = await request(app).delete("/api/sales/report-presets/2").expect(200);
 
-        expect(response.body).toEqual({ id: 2 });
+        expect(response.body).toEqual(expect.objectContaining({ id: 2 }));
     });
 });

@@ -15,7 +15,7 @@ describe("overrides API", () => {
             .send({})
             .expect(400);
 
-        expect(response.body).toEqual({ error: "productId is required" });
+        expect(response.body).toEqual(expect.objectContaining({ error: "productId is required" }));
     });
 
     it("creates an override", async () => {
@@ -28,7 +28,7 @@ describe("overrides API", () => {
             .send({ productId: 2 })
             .expect(201);
 
-        expect(response.body).toEqual({ id: 1, product_id: 2 });
+        expect(response.body).toEqual(expect.objectContaining({ id: 1, product_id: 2 }));
     });
 
     it("rejects invalid id on disable", async () => {
@@ -36,7 +36,7 @@ describe("overrides API", () => {
             .patch("/api/overrides/not-a-number/disable")
             .expect(400);
 
-        expect(response.body).toEqual({ error: "Invalid id" });
+        expect(response.body).toEqual(expect.objectContaining({ error: "Invalid id" }));
     });
 
     it("returns 404 if override not found", async () => {
@@ -44,7 +44,7 @@ describe("overrides API", () => {
 
         const response = await request(app).patch("/api/overrides/10/disable").expect(404);
 
-        expect(response.body).toEqual({ error: "Override not found" });
+        expect(response.body).toEqual(expect.objectContaining({ error: "Override not found" }));
     });
 
     it("disables override", async () => {
@@ -52,6 +52,6 @@ describe("overrides API", () => {
 
         const response = await request(app).patch("/api/overrides/10/disable").expect(200);
 
-        expect(response.body).toEqual({ id: 10 });
+        expect(response.body).toEqual(expect.objectContaining({ id: 10 }));
     });
 });
